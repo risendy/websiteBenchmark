@@ -5,8 +5,8 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use AppBundle\Service\ConnectorService;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Input\InputArgument;
+use AppBundle\Service\TimeBenchmarkService;
 
 class BenchmarkWebsiteCommand extends ContainerAwareCommand
 {
@@ -14,10 +14,11 @@ class BenchmarkWebsiteCommand extends ContainerAwareCommand
     protected static $defaultName = 'app:benchmark';
 
     private $connectorService;
+    private $timeBenchmarkService;
 
-    public function __construct(ConnectorService $connectorService)
+    public function __construct(TimeBenchmarkService $timeBenchmarkService)
     {
-        $this->connectorService = $connectorService;
+        $this->timeBenchmarkService = $timeBenchmarkService;
 
         parent::__construct();
     }
@@ -31,6 +32,9 @@ class BenchmarkWebsiteCommand extends ContainerAwareCommand
         // the full command description shown when running the command with
         // the "--help" option
         ->setHelp('This command allows you benchmark two websites')
+
+        ->addArgument('url1', InputArgument::REQUIRED, 'First url address')
+        ->addArgument('url2', InputArgument::REQUIRED, 'Second url address')
     ;
     }
 
@@ -38,12 +42,21 @@ class BenchmarkWebsiteCommand extends ContainerAwareCommand
     {
         $logger = $this->getContainer()->get('monolog.logger.benchmark');
 
-        $one = microtime(true);
-        $response = $this->connectorService->getWebsite('https://google.com/');
-        $two = microtime(true);
+        //warming up
+        $time0 = $this->timeBenchmarkService->getLoadingSpeed('https://pl.lipsum.com/');
 
-        $logger->info("Total Request time:". ( $two - $one ));
+        $time1 = $this->timeBenchmarkService->getLoadingSpeed($input->getArgument('url1'));
+        $time2 = $this->timeBenchmarkService->getLoadingSpeed($input->getArgument('url2'));
 
-        $output->writeln("Total Request time:". ( $two - $one ));
+        $compareMessage = $this->timeBenchmarkService->compareResults($time1, $time2);
+
+        $logger->info("First URL total Request time:". ( $time1 ));
+        $logger->info("Second URL total Request time:". ( $time2 ));
+        $logger->info($compareMessage);
+
+        $output->writeln("First URL total Request time:". ( $time1 ));
+        $output->writeln("Second URL total Request time:". ( $time2 ));
+        $output->writeln($compareMessage);
     }
+
 }

@@ -11,13 +11,13 @@ use AppBundle\Interfaces\HttpClientInterface;
 class GruzzleClient implements HttpClientInterface{
 	private $client;
 
-	public function __construct() {
-		$this->client = new \GuzzleHttp\Client(['base_uri' => 'https://google.com/']);
+	public function __construct(Client $client) {
+		$this->client = $client;
 	}
 
 	public function getWebsite($url) {
 		try {
-			$request = $this->client->request('GET', $url, ['verify' => false]);	
+			$request = $this->client->request('GET', $url);	
 		}
 		catch(RequestException $e) {
   			return $e->getMessage();
