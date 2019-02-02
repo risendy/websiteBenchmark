@@ -33,3 +33,20 @@ services:
     # AppBundle\Service\ExampleService:
     #     arguments:
     #         $someArgument: 'some_value'
+
+    app.gruzzle_client:
+        public: true
+        class: AppBundle\Service\GruzzleClient
+
+    app.connector:
+        public: true
+        class: AppBundle\Service\ConnectorService
+        arguments: ['@app.gruzzle_client']
+
+    app.http.interface:
+        class: AppBundle\Interfaces\HttpClientInterface
+
+    App\Command\BenchmarkWebsiteCommand:
+        tags:
+            - { name: 'console.command', command: 'app:benchmark' }
+        arguments: ['@app.connector']
