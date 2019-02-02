@@ -47,6 +47,4 @@ services:
         class: AppBundle\Interfaces\HttpClientInterface
 
     App\Command\BenchmarkWebsiteCommand:
-        tags:
-            - { name: 'console.command', command: 'app:benchmark' }
         arguments: ['@app.connector']

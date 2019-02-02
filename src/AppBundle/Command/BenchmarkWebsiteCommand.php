@@ -1,12 +1,14 @@
 <?php
 namespace AppBundle\Command;
 
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use AppBundle\Service\ConnectorService;
+use Psr\Log\LoggerInterface;
 
-class BenchmarkWebsiteCommand extends Command
+class BenchmarkWebsiteCommand extends ContainerAwareCommand
 {
      // the name of the command (the part after "bin/console")
     protected static $defaultName = 'app:benchmark';
@@ -34,9 +36,13 @@ class BenchmarkWebsiteCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $logger = $this->getContainer()->get('monolog.logger.benchmark');
+
         $one = microtime(true);
         $response = $this->connectorService->getWebsite('https://google.com/');
         $two = microtime(true);
+
+        $logger->info("Total Request time:". ( $two - $one ));
 
         $output->writeln("Total Request time:". ( $two - $one ));
     }
